@@ -53,12 +53,19 @@ func checkForUpdatesRequired() bool {
 
 func CheckForUpdates() {
 	// Disable checks on CI jobs and when updates not required.
-	if _, isCI := os.LookupEnv("CI"); isCI || !checkForUpdatesRequired() {
+	if _, isCI := os.LookupEnv("CI"); isCI {
 		return
 	}
-	err := updateLastCheckFile()
-	if err != nil {
+
+	forceCheck := slices.In(os.Args, "--update") || slices.In(os.Args, "--check-updates")
+	if !forceCheck && !checkForUpdatesRequired() {
 		return
+	}
+	if !forceCheck {
+		err := updateLastCheckFile()
+		if err != nil {
+			return
+		}
 	}
 
 	// Ensure the home directory exists.
